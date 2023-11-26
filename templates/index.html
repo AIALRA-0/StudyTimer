@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Timer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+        h1 {
+            font-size: 4em; /* 增大标题字体 */
+            margin: 0; /* 移除默认边距 */
+            padding-top: 20px; /* 添加一些顶部内边距 */
+            text-align: center; /* 确保标题居中 */
+        }
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            font-size: 1.2em; /* 放大数据栏 */
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px; /* 放大数据栏 */
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 15px 30px; /* 放大按钮 */
+            font-size: 1.2em; /* 放大按钮文本 */
+            margin: 10px; /* 为按钮添加一些外边距 */
+            cursor: pointer; /* 当鼠标悬停时显示指针 */
+        }
+        /* Clear按钮样式 */
+        .clear-button {
+            background-color: #f44336; /* 红色背景 */
+            color: white; /* 白色文本 */
+        }
+        /* Clear按钮悬停效果 */
+        .clear-button:hover {
+            background-color: #d32f2f;
+        }
+        .bottom-button-container {
+            margin-top: 20px; /* 在按钮上方添加边距 */
+            left: 50%; /* 设置左边缘到容器中心 */
+            bottom: 10px; /* 距离底部的距离 */
+        }
+        .canvas-container {
+            margin: 40px;
+            width: 50%; /* 根据需要调整宽度 */
+        }
+        #timer {
+            font-size: 2em; /* 放大字体 */
+            font-weight: bold; /* 字体加粗 */
+            text-align: center; /* 文字居中 */
+            margin: 20px 0; /* 上下边距 */
+            padding: 10px; /* 内边距 */
+            width: 100%; /* 宽度 */
+            box-sizing: border-box; /* 盒模型 */
+        }
+        div#timer-container {
+            display: flex;
+            justify-content: center;
+            width: 100%; /* 宽度 */
+        }
+        /* 开关样式 */
+        .switch {
+          position: relative;
+          display: block;
+          margin: 0 auto;
+          width: 60px;
+          height: 34px;
+          margin-bottom: 20px;
+        }
+
+        /* 隐藏默认的HTML复选框 */
+        .switch input {
+          opacity: 0;
+          width: 0;
+          height: 0;
+        }
+
+        /* 滑块样式 */
+        .slider {
+          position: absolute;
+          cursor: pointer;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: #ccc;
+          -webkit-transition: .1s;
+          transition: .1s;
+        }
+
+        .slider:before {
+          position: absolute;
+          content: "";
+          height: 26px;
+          width: 26px;
+          left: 4px;
+          bottom: 4px;
+          background-color: white;
+          -webkit-transition: .4s;
+          transition: .4s;
+        }
+
+        input:checked + .slider {
+          background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+          box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+          -webkit-transform: translateX(26px);
+          -ms-transform: translateX(26px);
+          transform: translateX(26px);
+        }
+
+        /* 圆角滑块 */
+        .slider.round {
+          border-radius: 34px;
+        }
+
+        .slider.round:before {
+          border-radius: 50%;
+        }
+
+        /* 开关按钮上的文字样式 */
+        .switch-text {
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px; /* 根据需要调整字体大小 */
+        }
+
+        /* 左侧文字定位 */
+        .switch-text.left {
+            left: -120px; /* 调整以适应您的具体布局 */
+        }
+
+        /* 右侧文字定位 */
+        .switch-text.right {
+            right: -120px; /* 调整以适应您的具体布局 */
+        }
+
+        .container {
+            position: relative; /* 确保父容器是相对定位 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; /* 确保容器宽度为整个页面宽度 */
+        }
+
+        table {
+            margin-top: 40px
+            margin-bottom: 40px; /* 或者你希望的任何值 */
+        }
+
+        /* 减少标题与下方表格的间距 */
+        h2 {
+            margin-top: 20px; /* 减小值减少间距 */
+            margin-bottom: 20px; /* 增大值增加间距 */
+        }
+
+        button {
+            background-color: #8a9294; /* 灰色 */
+            border: none; /* 无边框 */
+            color: white; /* 文字颜色 */
+            padding: 10px 25px; /* 内边距 */
+            text-align: center; /* 文本居中 */
+            text-decoration: none; /* 无文本装饰 */
+            display: inline-block; /* 行内块显示 */
+            font-size: 16px; /* 字体大小 */
+            margin: 15px 2px; /* 外边距 */
+            cursor: pointer; /* 鼠标悬停时的指针 */
+            border-radius: 4px; /* 边角圆滑度 */
+            box-shadow: 0 2px 5px 0 rgba(0,0,0,0.24), 0 2px 10px 0 rgba(0,0,0,0.19); /* 阴影效果 */
+            -webkit-transition-duration: 0.4s; /* Safari 过渡效果 */
+            transition-duration: 0.4s; /* 过渡效果 */
+        }
+
+        button:hover {
+            background-color: #696d6e; /* 鼠标悬停时的颜色变为更深的灰色 */
+        }
+    </style>
+</head>
+<body>
+    <h1>Study Timer</h1>
+    <div>
+        <div id="timer-container">
+            <div id="timer">00:00:00</div>
+        </div>
+        <label class="switch">
+            <span class="switch-text left">Stop Timer!</span>
+            <input type="checkbox" id="toggleSession">
+            <span class="slider round"></span>
+            <span class="switch-text right">Start Timer!</span>
+        </label>
+    </div>
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Study Time</th>
+        </tr>
+        {% for date, duration in records.items() %}
+        <tr>
+            <td>{{ date }}</td>
+            <td>{{ duration }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <button id="loadMore" onclick="loadMoreData()">Load More...</button>
+    <h2>Average Study Time</h2>
+        <table>
+            <tr>
+                <th>Period</th>
+                <th>Average Time</th>
+            </tr>
+            <tr>
+                <td>Last 7 Days</td>
+                <td>{{ avg_7_days }}</td>
+            </tr>
+            <tr>
+                <td>Last 30 Days</td>
+                <td>{{ avg_30_days }}</td>
+            </tr>
+            <tr>
+                <td>Last 365 Days</td>
+                <td>{{ avg_365_days }}</td>
+            </tr>
+        </table>
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="studyTimeChart" width="600" height="300"></canvas>
+        </div>
+        <div class="bottom-button-container">
+            <a href="/clear"><button class="clear-button">Clear Today's Time</button></a>
+        </div>
+    </div>
+    <script>
+        // 当页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function () {
+            // 获取传递到前端的数据
+            const records = {{ records | tojson | safe }};
+
+            // 提取最近七天的数据
+            const labels = Object.keys(records).slice(-7);
+            const data = Object.values(records).slice(-7).map(duration => {
+                const parts = duration.split(':');
+                const hoursInMinutes = parseInt(parts[0]) * 60;
+                const minutes = parseInt(parts[1]);
+                const secondsInMinutes = parseInt(parts[2]) / 60; // 将秒转换为分钟的小数部分
+                return hoursInMinutes + minutes + secondsInMinutes; // 将小时、分钟和秒合并为总分钟数
+            });
+
+            // 获取 canvas 上下文
+            const ctx = document.getElementById('studyTimeChart').getContext('2d');
+
+            // 创建柱状图
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Study Time (in minutes)',
+                        data: data,
+                        backgroundColor: 'rgba(65,105,225, 1)',
+                        borderColor: 'rgba(65,105,225, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            document.getElementById('toggleSession').addEventListener('change', function() {
+                if (this.checked) {
+                    startTimer();
+                    // 发送开始计时的请求到服务器
+                    fetch('/start', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(response => response.json())
+                    .then(data => {
+                        console.log('Study session started:', data);
+                    }).catch(error => {
+                        console.error('Error starting study session:', error);
+                    });
+                } else {
+                    const duration = stopTimer(); // 停止计时器并获取持续时间
+                    // 发送停止计时的请求到服务器
+                    fetch('/stop', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ duration: duration }) // 发送计时数据
+                    }).then(response => response.json())
+                    .then(data => {
+                        console.log('Study session stopped:', data);
+                    }).catch(error => {
+                        console.error('Error stopping study session:', error);
+                    });
+                }
+            });
+        });
+        // 添加计时器逻辑
+        let startTime = null; // 用于存储开始时间
+        let timerInterval = null; // 用于存储计时器的interval
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval); // 如果计时器已经在运行，先清除
+
+            startTime = new Date(); // 设置开始时间
+            timerInterval = setInterval(updateTimer, 1000); // 每秒更新计时器
+        }
+
+        function updateTimer() {
+            if (!startTime) return; // 如果没有开始时间，则不执行
+
+            const now = new Date();
+            const diff = new Date(now - startTime);
+
+            // 格式化时间显示
+            const hours = diff.getUTCHours().toString().padStart(2, '0');
+            const minutes = diff.getUTCMinutes().toString().padStart(2, '0');
+            const seconds = diff.getUTCSeconds().toString().padStart(2, '0');
+
+            document.getElementById('timer').innerText = `${hours}:${minutes}:${seconds}`;
+        }
+
+        document.getElementById('startButton').addEventListener('click', function(event) {
+            event.preventDefault(); // 阻止按钮的默认行为
+            startTimer();
+
+            // 发送异步请求到 /start 路由以开始新的学习会话
+            fetch('/start').then(response => {
+                // 你可以在这里处理服务器的响应
+            }).catch(error => {
+                console.error('Error starting study session:', error);
+            });
+        });
+
+        document.getElementById('stopButton').addEventListener('click', function(event) {
+            event.preventDefault(); // 阻止按钮的默认行为
+            stopTimer(); // 停止计时器的函数，您需要实现这个函数
+
+            // 发送异步请求到 /stop 路由以结束学习会话并记录时间
+            fetch('/stop').then(response => {
+                // 你可以在这里处理服务器的响应
+            }).catch(error => {
+                console.error('Error stopping study session:', error);
+            });
+
+            window.location.href = '/stop'; // 可以选择重定向到一个新页面或者更新当前页面
+        });
+
+        function stopTimer() {
+            if (!timerInterval) return null; // 如果没有计时器运行，则不执行
+
+            clearInterval(timerInterval); // 清除计时器
+
+            const now = new Date();
+            const diff = new Date(now - startTime);
+            document.getElementById('timer').innerText = '00:00:00'; // 重置计时器显示
+            startTime = null; // 重置开始时间
+            timerInterval = null; // 清除计时器的引用
+
+           fetch('/stop', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ duration: diff.getTime() })
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload(); // 重新加载页面以显示更新
+                } else {
+                    // 处理错误
+                }
+            })
+            .catch(error => {
+                console.error('Error stopping study session:', error);
+            });
+
+            // 返回计时会话的持续时间
+            return diff.getTime(); // 这将返回毫秒数
+        }
+
+        function loadMoreData() {
+            var currentLength = document.querySelectorAll('table tr').length - 1;  // 获取当前显示的天数 (-1 是因为去除表头)
+            var daysToLoad = currentLength + 30;  // 每次点击加载更多30天的数据
+
+            fetch('/?days=' + daysToLoad)
+            .then(response => response.text())
+            .then(html => {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var newTable = doc.querySelector('table');  // 获取新的表格 HTML
+                document.querySelector('table').innerHTML = newTable.innerHTML;  // 替换旧表格
+            })
+            .catch(error => {
+                console.error('Error loading more data:', error);
+            });
+        }
+    </script>
+</body>
+</html>
